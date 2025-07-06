@@ -1,48 +1,59 @@
-#include <initializer_list>
+#include "Registro.h"
+
 #include <iostream>
-#include <queue>
-#include <stdexcept>
 #include <string>
-#include <vector>
+#include <vector> // Adicionado para std::vector, embora não usado diretamente aqui, pode ser útil no futuro ou em outros contextos.
+#include <stdexcept> // Para std::invalid_argument e std::runtime_error, se necessário.
 
-class Registro {
- private:
-  std::string cpf;
-  std::string nome;
-  std::string dataNasc;
-  bool deletado;
+Registro::Registro()
+    : cpf(11, ' '), nome(50, ' '), dataNasc(10, ' '), deletado(false) {}
 
- public:
-  Registro()
-      : cpf(11, ' '), nome(50, ' '), dataNasc(10, ' '), deletado(false) {}
-  Registro(std::string c, std::string n, std::string d)
-      : cpf(c), nome(n), dataNasc(d), deletado(false) {
-    cpf.resize(11, ' ');
-    nome.resize(50, ' ');
-    dataNasc.resize(10, ' ');
+Registro::Registro(std::string c, std::string n, std::string d)
+    : deletado(false) { // Inicializar outros membros depois da validação do CPF
+  if (c.length() != 11) {
+    // Lançar uma exceção aqui. Para consistência com SistemaRegistro, usamos invalid_argument.
+    // Adicionamos uma mensagem de debug para clareza, embora em produção possa ser removida.
+    std::cerr << "[DEBUG REGISTRO] Tentativa de criar Registro com CPF de tamanho inválido: '" << c << "', Tamanho: " << c.length() << std::endl;
+    throw std::invalid_argument("CPF fornecido ao construtor de Registro deve ter exatamente 11 caracteres. Recebido: '" + c + "'");
   }
+  cpf = c; // Atribui o CPF validado.
 
-  bool operator<(const Registro& outro) const { return cpf < outro.cpf; }
-  bool operator==(const Registro& outro) const { return cpf == outro.cpf; }
+  // Mantém o redimensionamento para nome e dataNasc como campos de tamanho fixo.
+  nome = n;
+  nome.resize(50, ' ');
+  dataNasc = d;
+  dataNasc.resize(10, ' ');
+}
 
-  void marcarDeletado() {
-    deletado = true;
-    cpf = std::string(11, ' ');
-    nome = std::string(50, ' ');
-    dataNasc = std::string(10, ' ');
+bool Registro::operator<(const Registro& outro) const {
+  return cpf < outro.cpf;
+}
+
+bool Registro::operator==(const Registro& outro) const {
+  return cpf == outro.cpf;
+}
+
+void Registro::marcarDeletado() {
+  deletado = true;
+  // Limpar os campos pode ser opcional, dependendo da lógica de "deletado"
+  // cpf = std::string(11, ' ');
+  // nome = std::string(50, ' ');
+  // dataNasc = std::string(10, ' ');
+}
+
+bool Registro::estaDeletado() const { return deletado; }
+
+std::string Registro::getCpf() const { return cpf; }
+
+std::string Registro::getNome() const { return nome; }
+
+std::string Registro::getDataNasc() const { return dataNasc; }
+
+void Registro::imprimir() const {
+  if (!deletado) {
+    std::cout << "CPF: " << cpf << ", Nome: " << nome
+              << ", Nascimento: " << dataNasc << std::endl;
+  } else {
+    std::cout << "[REGISTRO DELETADO]" << std::endl;
   }
-  bool estaDeletado() const { return deletado; }
-
-  std::string getCpf() const { return cpf; }
-  std::string getNome() const { return nome; }
-  std::string getDataNasc() const { return dataNasc; }
-
-  void imprimir() const {
-    if (!deletado) {
-      std::cout << "CPF: " << cpf << ", Nome: " << nome
-                << ", Nascimento: " << dataNasc << std::endl;
-    } else {
-      std::cout << "[REGISTRO DELETADO]" << std::endl;
-    }
-  }
-};
+}
